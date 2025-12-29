@@ -23,3 +23,23 @@ A simple, mobile-first personal finance application contained entirely within a 
 ## 🚀 Setup & Installation
 
 Since this is a client-side application using Firebase, you need to set up your own Firebase project to use it.
+
+## Configuration
+
+This project uses Firebase (Firestore & Auth). To make it work:
+
+1. Create a project at [Firebase Console](https://console.firebase.google.com/).
+2. Enable **Firestore Database** and **Authentication** (Email/Password provider).
+3. Copy your web app configuration.
+4. Open `index.html` and locate the `firebaseConfig` object (around line 140).
+5. Replace the placeholder values with your actual Firebase credentials:
+
+```javascript
+const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT_ID.firebasestorage.app",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
+};
