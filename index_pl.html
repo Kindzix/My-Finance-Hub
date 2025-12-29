@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Moje Centrum Finansowe</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-color: #1E1E1E;
+            --accent-color: #00ADB5;
+            --income-color: #00C896;
+            --expense-color: #FF4081;
+            --savings-color: #7C4DFF;
+            --vacation-color: #2979FF;
+            --delete-color: #D32F2F;
+            --edit-color: #FFA000;
+            --text-color: #FFFFFF;
+            --text-secondary: #B0B0B0;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; -webkit-tap-highlight-color: transparent; }
+        
+        body { background-color: var(--bg-color); color: var(--text-color); height: 100vh; display: flex; flex-direction: column; overflow: hidden; font-size: 14px; }
+        
+        .container { 
+            width: 100%; max-width: 1600px; margin: 0 auto; padding: 10px; 
+            height: 100%; display: flex; flex-direction: column; 
+        }
+        .hidden { display: none !important; }
+        .flex { display: flex; }
+        .flex-col { display: flex; flex-direction: column; }
+        .center { align-items: center; justify-content: center; }
+        .space-between { justify-content: space-between; }
+        .gap-5 { gap: 5px; }
+        .gap-10 { gap: 10px; }
+        .gap-20 { gap: 20px; }
+        .mt-5 { margin-top: 5px; }
+        .mt-10 { margin-top: 10px; }
+        .mb-5 { margin-bottom: 5px; }
+        .mb-10 { margin-bottom: 10px; }
+        
+        .text-xl { font-size: 1.2rem; font-weight: bold; }
+        .text-2xl { font-size: 1.5rem; font-weight: bold; }
+        
+        .text-accent { color: var(--accent-color); }
+        .text-income { color: var(--income-color); }
+        .text-expense { color: var(--expense-color); }
+        .text-savings { color: var(--savings-color); }
+        .text-vacation { color: var(--vacation-color); }
+
+        button {
+            cursor: pointer; border: none; border-radius: 6px; padding: 8px 12px; 
+            font-size: 0.9rem; transition: filter 0.2s; color: white; font-weight: bold;
+            touch-action: manipulation;
+        }
+        button:active { filter: brightness(0.8); transform: scale(0.98); }
+        
+        .btn-tile { background-color: var(--card-color); height: 80px; font-size: 1.2rem; border-radius: 12px; width: 100%; }
+        .btn-nav { background: transparent; border: 1px solid gray; padding: 6px 12px; font-size: 0.85rem; }
+        .btn-add { width: 36px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 6px; flex-shrink: 0;}
+
+        input, select {
+            background-color: #2B2B2B; border: 1px solid #333; color: white;
+            padding: 8px; border-radius: 6px; outline: none; font-size: 14px; 
+            width: 100%; height: 36px;
+        }
+        input:focus { border-color: var(--accent-color); }
+
+        .card { 
+            background-color: var(--card-color); 
+            border-radius: 15px; 
+            padding: 12px; 
+            display: flex; 
+            flex-direction: column;
+            min-height: 0; 
+        }
+        
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 5px;}
+
+        .scrollable { 
+            overflow-y: auto; 
+            flex: 1; 
+            padding-right: 2px;
+        }
+        .scrollable::-webkit-scrollbar { width: 4px; }
+        .scrollable::-webkit-scrollbar-track { background: transparent; }
+        .scrollable::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 2px; }
+        th { text-align: left; padding: 6px 4px; background-color: #151515; color: #ddd; position: sticky; top: 0; z-index: 1; font-size: 0.8rem; font-weight: bold;}
+        td { padding: 6px 4px; font-size: 0.85rem; vertical-align: middle; border-bottom: none; }
+        tbody tr:hover { background-color: rgba(255,255,255,0.03); border-radius: 4px; }
+
+        .dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; grid-template-rows: repeat(3, 1fr); gap: 15px; flex: 1; overflow: hidden; }
+        .month-screen-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; flex: 1; min-height: 0; overflow: hidden; }
+        .month-left-col { display: flex; flex-direction: column; gap: 15px; overflow: hidden; }
+        .input-group { display: flex; gap: 5px; margin-bottom: 8px; }
+        .footer { background-color: #151515; padding: 10px 15px; margin-top: 5px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; font-size: 0.9rem; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; flex: 1; overflow: hidden; }
+        .stats-row { display: flex; justify-content: space-between; width: 100%; }
+
+        #screen-login {
+            height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
+        }
+        .login-card {
+            background-color: var(--card-color); padding: 30px; border-radius: 20px; width: 90%; max-width: 400px;
+            display: flex; flex-direction: column; gap: 15px;
+        }
+
+        @media (max-width: 900px) {
+            body { height: auto; min-height: 100vh; overflow-y: auto; }
+            .container { height: auto; display: block; padding: 8px; }
+            
+            .text-2xl { font-size: 1.3rem; }
+            .text-xl { font-size: 1.1rem; }
+            .gap-20 { gap: 10px; }
+            .card { padding: 10px; margin-bottom: 10px; height: auto; min-height: auto; }
+            
+            .dashboard-grid { display: flex; flex-direction: column; overflow: visible; gap: 10px; }
+            .month-grid { display: grid; grid-template-columns: repeat(3, 1fr) !important; gap: 5px !important; }
+            .month-grid > button { height: 45px !important; font-size: 0.8rem !important; padding: 0 !important; }
+
+            .month-screen-layout { display: flex; flex-direction: column; overflow: visible; gap: 10px; }
+            .month-left-col { display: contents; } 
+            
+            #month-income-card { order: 1; flex: none; }
+            #month-expense-card { order: 2; flex: none; }
+            #month-savings-card { order: 3; flex: none; }
+
+            .month-screen-layout .scrollable, #sav-add-card .scrollable, .grid-3 .scrollable {
+                height: auto !important;
+                max-height: none !important;
+                overflow: visible;
+            }
+
+            #sav-add-card { flex: none; height: auto; }
+            #sav-status-card { flex: none; height: auto; }
+            .sav-row { margin-bottom: 2px !important; padding-bottom: 2px !important; border-bottom: 1px solid #333; }
+
+            .grid-3 { display: flex !important; flex-direction: column; overflow: visible; }
+            .stats-row { flex-direction: column; gap: 5px; align-items: center; }
+            .stats-row > div { width: 100%; border-bottom: 1px solid #333; padding-bottom: 5px; }
+            
+            .input-group { flex-wrap: nowrap; }
+            .input-group > select, .input-group > input { padding: 6px; height: 34px; font-size: 13px; }
+            .btn-add { width: 34px; height: 34px; }
+            .footer { flex-direction: column; gap: 5px; text-align: center; padding: 10px; margin-bottom: 20px; }
+        }
+
+        #modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 1000;
+        }
+        .modal { background: var(--card-color); padding: 20px; border-radius: 15px; width: 90%; max-width: 350px; }
+
+        #status-bar {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); 
+            background: #333; padding: 6px 15px; border-radius: 20px; font-size: 0.8rem; 
+            opacity: 0; transition: opacity 0.5s; pointer-events: none; z-index: 2000;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="app">
+        <div id="screen-login">
+            <div class="login-card">
+                <h1 class="text-2xl text-accent center" style="text-align:center">Moje Finanse</h1>
+                <input id="email" type="email" placeholder="Email">
+                <input id="password" type="password" placeholder="Hasło">
+                <button style="background-color: var(--accent-color); margin-top:10px;" onclick="window.login()">Zaloguj się</button>
+                <p id="auth-error" style="color: red; text-align: center; font-size: 0.9rem;"></p>
+            </div>
+        </div>
+    </div>
+    
+    <div id="status-bar">Zapisano w chmurze</div>
+
+    <div id="modal-overlay" class="hidden">
+        <div class="modal">
+            <h2 id="modal-title" class="mb-10 text-xl">Edytuj</h2>
+            <div id="modal-fields" class="flex-col gap-10"></div>
+            <div class="flex space-between mt-10 gap-10">
+                <button onclick="window.closeModal()" style="background-color: #444; flex:1;">Anuluj</button>
+                <button onclick="window.saveModal()" style="background-color: var(--accent-color); flex:1;">Zapisz</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+
+        // SKONFIGURUJ SWOJE DANE FIREBASE TUTAJ
+        const firebaseConfig = {
+            apiKey: "TWOJ_KLUCZ_API",
+            authDomain: "TWOJE_ID_PROJEKTU.firebaseapp.com",
+            projectId: "TWOJE_ID_PROJEKTU",
+            storageBucket: "TWOJE_ID_PROJEKTU.firebasestorage.app",
+            messagingSenderId: "TWOJE_SENDER_ID",
+            appId: "TWOJE_APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        let DOC_ID = null;
+
+        const ROK_OPCJE = ["2026", "2027", "2028", "2029", "2030", "2031"];
+        const MIESIACE = ["Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec", "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"];
+        const KATEGORIE = ["Dom", "Kredyt", "Jedzenie", "Rachunki", "Beauty", "Zdrowie", "Transport", "Inne"];
+        const ZRODLA = ["Pensja", "Dodatki", "Prezent"];
+        const CELE = ["Poduszka Finansowa", "Nagłe Wydatki", "Na Wakacje"];
+        
+        let data = {};
+        let currentYear = null;
+        let currentMonth = null;
+        let savingsFilterMonth = "Wszystkie"; 
+        let modalCallback = null;
+        let saveTimeout = null;
+        let currentView = "login"; 
+
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleGesture();
+        });
+
+        function handleGesture() {
+            if (touchEndX - touchStartX > 100) { 
+                goBack();
+            }
+        }
+
+        function goBack() {
+            if (currentView === "month") renderDashboard();
+            else if (currentView === "savings") renderDashboard();
+            else if (currentView === "vacation_list") renderDashboard();
+            else if (currentView === "report") renderDashboard();
+            else if (currentView === "dashboard") renderStartScreen();
+            else if (currentView === "vacation_details") renderVacationList();
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                DOC_ID = user.uid;
+                loadData();
+            } else {
+                renderLoginScreen();
+            }
+        });
+
+        window.login = async () => {
+            const e = document.getElementById('email').value;
+            const p = document.getElementById('password').value;
+            try {
+                await signInWithEmailAndPassword(auth, e, p);
+            } catch (err) {
+                document.getElementById('auth-error').innerText = "Błąd logowania: " + err.message;
+            }
+        }
+
+        window.logout = () => {
+            signOut(auth);
+        }
+
+        function renderLoginScreen() {
+            currentView = "login";
+            document.getElementById('app').innerHTML = `
+                <div id="screen-login">
+                    <div class="login-card">
+                        <h1 class="text-2xl text-accent center" style="text-align:center">Logowanie</h1>
+                        <input id="email" type="email" placeholder="Email">
+                        <input id="password" type="password" placeholder="Hasło">
+                        <button style="background-color: var(--accent-color); margin-top:10px;" onclick="window.login()">Zaloguj się</button>
+                        <p id="auth-error" style="color: red; text-align: center; font-size: 0.9rem;"></p>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function loadData() {
+            try {
+                const docRef = doc(db, "users", DOC_ID);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) { data = docSnap.data(); } else { data = {}; }
+                renderStartScreen();
+            } catch (error) {
+                document.getElementById('app').innerHTML = `<h1 style="color:red; text-align:center;">Błąd: ${error.message}</h1>`;
+            }
+        }
+
+        async function saveData() {
+            const status = document.getElementById('status-bar');
+            status.innerText = "Zapisywanie...";
+            status.style.opacity = 1;
+            try {
+                await setDoc(doc(db, "users", DOC_ID), data);
+                status.innerText = "Zapisano ✓";
+                if(saveTimeout) clearTimeout(saveTimeout);
+                saveTimeout = setTimeout(() => { status.style.opacity = 0; }, 2000);
+            } catch (error) {
+                status.innerText = "Błąd zapisu!";
+                status.style.color = "red";
+            }
+        }
+
+        function initYear(rok) {
+            if (!data[rok]) {
+                data[rok] = {
+                    miesiace: {},
+                    skarbonki: { cele: { "Poduszka Finansowa": 0.0, "Na Wakacje": 0.0, "Nagłe Wydatki": 0.0 }, historia: [] },
+                    wakacje: []
+                };
+                saveData();
+            }
+        }
+
+        function initMonth(rok, miesiac) {
+            initYear(rok);
+            if (!data[rok].miesiace[miesiac]) {
+                data[rok].miesiace[miesiac] = { wplywy: [], wydatki: [] };
+                saveData();
+            }
+        }
+
+        function obliczWolneSrodki(rok) {
+            initYear(rok);
+            let wplywy = 0, wydatki = 0;
+            Object.values(data[rok].miesiace).forEach(m => {
+                wplywy += m.wplywy.reduce((sum, x) => sum + x.kwota, 0);
+                wydatki += m.wydatki.reduce((sum, x) => sum + x.kwota, 0);
+            });
+            let oszcz = data[rok].skarbonki.historia.reduce((sum, x) => sum + x.kwota, 0);
+            return wplywy - wydatki - oszcz;
+        }
+
+        function obliczStanWakacji(rok) {
+            initYear(rok);
+            let zgromadzone = data[rok].skarbonki.cele["Na Wakacje"] || 0.0;
+            let zarezerwowane = data[rok].wakacje.reduce((sum, w) => sum + w.budzet, 0);
+            return { zgromadzone, zarezerwowane, dostepne: zgromadzone - zarezerwowane };
+        }
+
+        function formatPLN(kwota) {
+            return parseFloat(kwota).toFixed(2) + " PLN";
+        }
+
+        function uuid() { return crypto.randomUUID(); }
+        function dzisiaj() { return new Date().toISOString().split('T')[0]; }
+
+        const appElem = document.getElementById('app');
+
+        function renderStartScreen() {
+            currentView = "start";
+            appElem.innerHTML = `
+                <div id="screen-start">
+                    <div class="flex space-between center" style="width:100%; margin-bottom: 20px;">
+                        <h1 class="text-2xl text-accent">Wybierz rok:</h1>
+                        <button onclick="window.logout()" style="background:#D32F2F; font-size:0.8rem; padding: 6px 12px;">Wyloguj</button>
+                    </div>
+                    <div class="flex gap-10" style="flex-wrap: wrap; justify-content: center;">
+                        ${ROK_OPCJE.map(rok => `<button class="btn-tile" style="width: 100px; height: 60px;" onclick="window.selectYear('${rok}')">${rok}</button>`).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function selectYear(rok) { currentYear = rok; initYear(rok); renderDashboard(); }
+
+        function renderDashboard() {
+            currentView = "dashboard";
+            const stats = obliczStanWakacji(currentYear);
+            const totalSkarbonki = Object.values(data[currentYear].skarbonki.cele).reduce((a,b)=>a+b,0);
+            const dostepneOszcz = totalSkarbonki - stats.zarezerwowane;
+
+            appElem.innerHTML = `
+                <div class="flex space-between center mb-10">
+                    <button class="btn-nav" onclick="window.renderStartScreen()">← Rok</button>
+                    <h1 class="text-xl">Panel ${currentYear}</h1>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="card" style="grid-row: span 3; overflow: hidden;">
+                        <div class="month-grid" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:5px; height:100%; overflow-y:auto;">
+                            ${MIESIACE.map((m, i) => {
+                                const now = new Date();
+                                const realYear = now.getFullYear();
+                                const realMonth = now.getMonth();
+                                const selYear = parseInt(currentYear);
+                                
+                                let style = "background: #2B2B2B; border-radius: 8px;"; 
+                                if (selYear < realYear) {
+                                    style = "background: #111; color: #444; border-radius: 8px; border: 1px solid #222;";
+                                } else if (selYear === realYear) {
+                                    if (i < realMonth) {
+                                        style = "background: #151515; color: #555; border-radius: 8px;";
+                                    } else if (i === realMonth) {
+                                        style = "background: var(--accent-color); color: #fff; font-weight: bold; border-radius: 8px; box-shadow: 0 0 8px rgba(0,173,181,0.4); transform: scale(1.05);";
+                                    }
+                                }
+                                return `<button onclick="window.renderMonthScreen('${m}')" style="${style}">${m}</button>`;
+                            }).join('')}
+                        </div>
+                    </div>
+
+                    <div class="card center flex-col">
+                        <h2 class="text-savings text-xl">Oszczędności</h2>
+                        <div class="text-xl mt-5 mb-5">${formatPLN(dostepneOszcz)}</div>
+                        <button style="background-color: var(--savings-color); width:100%" onclick="window.renderSavingsScreen()">Zarządzaj ></button>
+                    </div>
+
+                    <div class="card center flex-col">
+                        <h2 class="text-vacation text-xl">Wakacje</h2>
+                        <p style="color: gray; margin-top: 5px; font-size:0.8rem; text-align:center">Dostępne: ${formatPLN(stats.dostepne)}</p>
+                        <button style="background-color: var(--vacation-color); margin-top: 10px; width:100%" onclick="window.renderVacationList()">Planuj ></button>
+                    </div>
+
+                    <div class="card center flex-col">
+                        <h2 class="text-xl">Raport</h2>
+                        <button style="background-color: #546E7A; margin-top: 10px; width:100%" onclick="window.renderReport()">Raport Roczny ></button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderMonthScreen(miesiac) {
+            currentView = "month";
+            currentMonth = miesiac;
+            initMonth(currentYear, currentMonth);
+            const mData = data[currentYear].miesiace[miesiac];
+            
+            const wolne = obliczWolneSrodki(currentYear);
+            const sumaWplywow = mData.wplywy.reduce((a,b) => a+b.kwota, 0);
+            const sumaWydatkow = mData.wydatki.reduce((a,b) => a+b.kwota, 0);
+            
+            const oszczMc = data[currentYear].skarbonki.historia.filter(x => x.miesiac === miesiac);
+            const sumaOszcz = oszczMc.reduce((a,b) => a+b.kwota, 0);
+            const bilans = sumaWplywow - sumaWydatkow - sumaOszcz;
+
+            let podsumowanieOszcz = { "Poduszka Finansowa": 0, "Na Wakacje": 0, "Nagłe Wydatki": 0 };
+            oszczMc.forEach(w => {
+                if (podsumowanieOszcz[w.cel] !== undefined) {
+                    podsumowanieOszcz[w.cel] += w.kwota;
+                }
+            });
+
+            appElem.innerHTML = `
+                <div class="flex space-between center mb-5" style="flex-wrap:wrap; gap:5px;">
+                    <div class="flex center gap-10">
+                        <button class="btn-nav" onclick="window.renderDashboard()">←</button>
+                        <h1 class="text-xl">${miesiac}</h1>
+                    </div>
+                    <div class="text-accent font-bold" style="font-size:0.9rem">WOLNE: ${formatPLN(wolne)}</div>
+                </div>
+
+                <div class="month-screen-layout">
+                    <div class="month-left-col">
+                        <div class="card flex-col" id="month-income-card" style="flex: 1; min-height: 0;">
+                            <h2 class="text-income mb-5" style="font-size:1rem">Wpływy</h2>
+                            <div class="input-group">
+                                <select id="inc-src" style="flex:2">${ZRODLA.map(z=>`<option>${z}</option>`).join('')}</select>
+                                <input id="inc-amount" type="number" placeholder="Kwota" style="flex:1">
+                                <button class="btn-add" style="background-color: var(--income-color);" onclick="window.addIncome()">+</button>
+                            </div>
+                            <div class="scrollable">
+                                <table>
+                                    <tbody>
+                                    ${mData.wplywy.map(item => `
+                                        <tr>
+                                            <td>${item.zrodlo}</td>
+                                            <td style="text-align:right">${formatPLN(item.kwota)}</td>
+                                            <td style="text-align:right; width:50px;">
+                                                <button style="padding: 2px 6px; background: var(--edit-color); font-size:0.7rem; margin-right:2px;" onclick='window.editItem("income", "${item.id}")'>E</button>
+                                                <button style="padding: 2px 6px; background: var(--delete-color); font-size:0.7rem" onclick='window.deleteItem("income", "${item.id}")'>X</button>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="mt-5 text-income font-bold" style="font-size:0.9rem">Suma: ${formatPLN(sumaWplywow)}</div>
+                        </div>
+
+                        <div class="card flex-col" id="month-savings-card" style="flex: 1; min-height: 0;">
+                            <h2 class="text-savings mb-5" style="font-size:1rem">Oszczędzone w tym miesiącu</h2>
+                            <div class="scrollable">
+                                <table>
+                                    <tbody>
+                                    ${Object.entries(podsumowanieOszcz).map(([cel, kwota]) => `
+                                        <tr><td>${cel}</td><td style="text-align:right">${formatPLN(kwota)}</td></tr>
+                                    `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="mt-5 text-savings font-bold" style="font-size:0.9rem">Suma: ${formatPLN(sumaOszcz)}</div>
+                        </div>
+                    </div>
+
+                    <div class="card flex-col" id="month-expense-card" style="min-height: 0;">
+                        <div class="card-header">
+                            <div>
+                                <h2 class="text-expense" style="font-size:1rem; margin-bottom:0;">Wydatki</h2>
+                                <span class="text-expense" style="font-size:0.85rem; font-weight:bold;" id="exp-total">Suma: ${formatPLN(sumaWydatkow)}</span>
+                            </div>
+                            <div class="flex gap-5">
+                                <input type="date" id="exp-date-filter" onchange="window.renderExpenseTable()" style="width:auto; padding:2px; height:28px; font-size:0.8rem">
+                                <select id="exp-filter" onchange="window.renderExpenseTable()" style="padding: 2px; width:auto; height:28px; font-size:0.8rem">
+                                    <option value="All">Kat: Wszystkie</option>
+                                    ${KATEGORIE.map(k=>`<option>${k}</option>`).join('')}
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="input-group">
+                            <select id="exp-cat" style="flex:1"><option disabled selected>Kategoria</option>${KATEGORIE.map(k=>`<option>${k}</option>`).join('')}</select>
+                            <input id="exp-desc" placeholder="Opis" style="flex:1.5">
+                        </div>
+                        <div class="input-group">
+                            <input id="exp-date" type="date" value="${dzisiaj()}" style="flex:1">
+                            <input id="exp-amount" type="number" placeholder="Kwota" style="flex:1">
+                            <button class="btn-add" style="background-color: var(--expense-color); flex:0.5" onclick="window.addExpense()">+</button>
+                        </div>
+                        
+                        <div class="scrollable">
+                            <table id="exp-table"></table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="footer">
+                    <div class="text-income">WPŁYWY: ${formatPLN(sumaWplywow)}</div>
+                    <div class="text-expense">WYDATKI: ${formatPLN(sumaWydatkow)}</div>
+                    <div class="text-savings">OSZCZĘDZONO: ${formatPLN(sumaOszcz)}</div>
+                    <div style="color: ${bilans >= 0 ? 'var(--income-color)' : 'var(--delete-color)'}; font-weight: bold;">
+                        BILANS: ${formatPLN(bilans)}
+                    </div>
+                </div>
+            `;
+            renderExpenseTable();
+        }
+
+        function addIncome() {
+            const src = document.getElementById('inc-src').value;
+            const amt = parseFloat(document.getElementById('inc-amount').value);
+            if(amt > 0) {
+                data[currentYear].miesiace[currentMonth].wplywy.push({id: uuid(), zrodlo: src, kwota: amt});
+                saveData(); renderMonthScreen(currentMonth);
+            }
+        }
+        function addExpense() {
+            const cat = document.getElementById('exp-cat').value;
+            const desc = document.getElementById('exp-desc').value;
+            const date = document.getElementById('exp-date').value;
+            const amt = parseFloat(document.getElementById('exp-amount').value);
+            if(amt > 0) {
+                data[currentYear].miesiace[currentMonth].wydatki.push({id: uuid(), kategoria: cat, opis: desc, data: date, kwota: amt});
+                saveData(); renderMonthScreen(currentMonth);
+            }
+        }
+        function renderExpenseTable() {
+            const filterCat = document.getElementById('exp-filter').value;
+            const filterDate = document.getElementById('exp-date-filter').value;
+            
+            const table = document.getElementById('exp-table');
+            const allExps = data[currentYear].miesiace[currentMonth].wydatki;
+            
+            const filtered = allExps.filter(e => {
+                const matchCat = filterCat === "All" || e.kategoria === filterCat;
+                const matchDate = !filterDate || e.data === filterDate;
+                return matchCat && matchDate;
+            });
+            
+            table.innerHTML = `
+                <thead><tr><th>Data/Kat</th><th>Opis</th><th>Kwota</th><th>Akcja</th></tr></thead>
+                <tbody>
+                ${filtered.map(item => `
+                <tr>
+                    <td><div style="font-size:0.75em; color:gray">${item.data || ''}</div>${item.kategoria}</td>
+                    <td>${item.opis}</td>
+                    <td style="text-align:right">${formatPLN(item.kwota)}</td>
+                    <td style="text-align:right; width:50px;">
+                        <button style="padding: 2px 6px; background: var(--edit-color); font-size:0.7rem; margin-right:2px;" onclick='window.editItem("expense", "${item.id}")'>E</button>
+                        <button style="padding: 2px 6px; background: var(--delete-color); font-size:0.7rem" onclick='window.deleteItem("expense", "${item.id}")'>X</button>
+                    </td>
+                </tr>
+            `).join('')}
+            </tbody>`;
+            
+            const total = filtered.reduce((a,b)=>a+b.kwota,0);
+            const totalElem = document.getElementById('exp-total');
+            if(totalElem) totalElem.innerText = "Suma: " + formatPLN(total);
+        }
+        function deleteItem(type, id) {
+            const m = data[currentYear].miesiace[currentMonth];
+            if(type === 'income') m.wplywy = m.wplywy.filter(x => x.id !== id);
+            if(type === 'expense') m.wydatki = m.wydatki.filter(x => x.id !== id);
+            saveData(); renderMonthScreen(currentMonth);
+        }
+        function editItem(type, id) {
+            const m = data[currentYear].miesiace[currentMonth];
+            const arr = type === 'income' ? m.wplywy : m.wydatki;
+            const item = arr.find(x => x.id === id);
+            if(!item) return;
+            const fields = [];
+            if(type === 'income') {
+                fields.push({label: 'Źródło', key: 'zrodlo', val: item.zrodlo, type: 'text'});
+                fields.push({label: 'Kwota', key: 'kwota', val: item.kwota, type: 'number'});
+            } else {
+                fields.push({label: 'Kategoria', key: 'kategoria', val: item.kategoria, type: 'text'});
+                fields.push({label: 'Opis', key: 'opis', val: item.opis, type: 'text'});
+                fields.push({label: 'Data', key: 'data', val: item.data || dzisiaj(), type: 'date'});
+                fields.push({label: 'Kwota', key: 'kwota', val: item.kwota, type: 'number'});
+            }
+            openModal("Edytuj", fields, (newVals) => {
+                Object.assign(item, newVals);
+                saveData();
+                renderMonthScreen(currentMonth);
+            });
+        }
+
+        function renderSavingsScreen() {
+            currentView = "savings";
+            const wolne = obliczWolneSrodki(currentYear);
+            const cele = data[currentYear].skarbonki.cele;
+            const hist = data[currentYear].skarbonki.historia;
+            const stats = obliczStanWakacji(currentYear);
+            const totalDostepne = Object.values(cele).reduce((a,b)=>a+b,0) - stats.zarezerwowane;
+
+            let filteredHist = hist;
+            if (savingsFilterMonth !== "Wszystkie") {
+                filteredHist = hist.filter(h => h.miesiac === savingsFilterMonth);
+            }
+            const filteredSum = filteredHist.reduce((a,b)=>a+b.kwota,0);
+
+            const teras = MIESIACE[new Date().getMonth()];
+
+            appElem.innerHTML = `
+                <div class="flex space-between center mb-10">
+                    <div class="flex center gap-10">
+                        <button class="btn-nav" onclick="window.renderDashboard()">←</button>
+                        <h1 class="text-xl text-savings">Skarbonki</h1>
+                    </div>
+                </div>
+
+                <div class="month-screen-layout">
+                    <div class="card flex-col" id="sav-add-card" style="flex: 2; overflow: hidden; min-height:0;">
+                        <h3 class="text-income mb-5" style="font-size:1rem">Wolne: ${formatPLN(wolne)}</h3>
+                        
+                        <div class="input-group">
+                            <select id="sav-month" style="flex:1">
+                                ${MIESIACE.map(m => `<option ${m === teras ? 'selected' : ''}>${m}</option>`).join('')}
+                            </select>
+                            <select id="sav-target" style="flex:2">${CELE.map(k=>`<option>${k}</option>`).join('')}</select>
+                        </div>
+                        <div class="input-group">
+                            <input id="sav-date" type="date" value="${dzisiaj()}" style="flex:1">
+                            <input id="sav-amount" type="number" placeholder="Kwota" style="flex:1">
+                            <button style="background-color: var(--savings-color); flex:1" onclick="window.addSaving()">Wpłać</button>
+                        </div>
+
+                        <div class="flex space-between center mt-10 mb-5">
+                            <span style="font-size:0.9rem">Historia:</span>
+                            <select id="sav-history-filter" onchange="window.updateSavingsFilter()" style="width:100px; height:30px; padding:2px;">
+                                <option value="Wszystkie" ${savingsFilterMonth==="Wszystkie"?"selected":""}>Wszystkie</option>
+                                ${MIESIACE.map(m=>`<option ${savingsFilterMonth===m?"selected":""}>${m}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="scrollable">
+                            <table>
+                                <thead><tr><th>Data/Cel</th><th>Kwota</th><th>Akcja</th></tr></thead>
+                                <tbody>
+                                ${[...filteredHist].reverse().map(item => `
+                                    <tr>
+                                        <td><div style="font-size:0.8rem; color:gray">${item.dataWplaty || item.miesiac}</div>${item.cel}</td>
+                                        <td style="text-align:right">${formatPLN(item.kwota)}</td>
+                                        <td style="text-align:right; width:60px;">
+                                            <button style="background: var(--edit-color); font-size: 0.7rem; padding: 2px 6px; margin-right:2px;" onclick="window.editSaving('${item.id}')">E</button>
+                                            <button style="background: var(--delete-color); font-size: 0.7rem; padding: 2px 6px;" onclick="window.deleteSaving('${item.id}')">X</button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mt-5 text-savings" style="font-size:0.9rem; text-align:right">Suma w widoku: ${formatPLN(filteredSum)}</div>
+                    </div>
+
+                    <div class="flex-col gap-10" id="sav-status-card" style="flex: 1; overflow: hidden; min-height:0;">
+                        <h2 class="text-xl">Stan</h2>
+                        <h3 class="text-income text-right" style="font-size:1rem">Dostępne: ${formatPLN(totalDostepne)}</h3>
+                        <div class="scrollable card">
+                            ${Object.entries(cele).map(([k, v]) => {
+                                let displayVal = formatPLN(v);
+                                let extraInfo = "";
+                                if(k === "Na Wakacje") {
+                                    displayVal = formatPLN(stats.dostepne);
+                                    extraInfo = `<div style="font-size:0.75rem; color:gray; text-align:right;">(Zablokowano: ${formatPLN(stats.zarezerwowane)})</div>`;
+                                }
+                                return `
+                                <div class="sav-row flex space-between center">
+                                    <span>${k}</span>
+                                    <div class="text-right">
+                                        <div class="text-savings font-bold">${displayVal}</div>
+                                        ${extraInfo}
+                                    </div>
+                                </div>`;
+                            }).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateSavingsFilter() {
+            savingsFilterMonth = document.getElementById('sav-history-filter').value;
+            renderSavingsScreen();
+        }
+
+        function addSaving() {
+            const m = document.getElementById('sav-month').value;
+            const t = document.getElementById('sav-target').value;
+            const d = document.getElementById('sav-date').value;
+            const a = parseFloat(document.getElementById('sav-amount').value);
+            if(a > 0) {
+                data[currentYear].skarbonki.cele[t] += a;
+                data[currentYear].skarbonki.historia.push({id: uuid(), miesiac: m, dataWplaty: d, cel: t, kwota: a});
+                saveData(); renderSavingsScreen();
+            }
+        }
+
+        function editSaving(id) {
+            const h = data[currentYear].skarbonki.historia;
+            const item = h.find(x => x.id === id);
+            if(!item) return;
+
+            const fields = [
+                {label: 'Miesiąc (Księgowy)', key: 'miesiac', val: item.miesiac, type: 'text'}, 
+                {label: 'Data', key: 'dataWplaty', val: item.dataWplaty || dzisiaj(), type: 'date'},
+                {label: 'Kwota', key: 'kwota', val: item.kwota, type: 'number'}
+            ];
+
+            openModal("Edytuj wpłatę", fields, (newVals) => {
+                data[currentYear].skarbonki.cele[item.cel] -= item.kwota;
+                Object.assign(item, newVals);
+                data[currentYear].skarbonki.cele[item.cel] += item.kwota;
+                saveData(); renderSavingsScreen();
+            });
+        }
+
+        function deleteSaving(id) {
+            const h = data[currentYear].skarbonki.historia;
+            const item = h.find(x => x.id === id);
+            if(item) {
+                data[currentYear].skarbonki.cele[item.cel] -= item.kwota;
+                data[currentYear].skarbonki.historia = h.filter(x => x.id !== id);
+                saveData(); renderSavingsScreen();
+            }
+        }
+
+        function renderVacationList() {
+            currentView = "vacation_list";
+            const stats = obliczStanWakacji(currentYear);
+            appElem.innerHTML = `
+                <div class="flex space-between center mb-10">
+                    <div class="flex center gap-10">
+                        <button class="btn-nav" onclick="window.renderDashboard()">←</button>
+                        <h1 class="text-xl text-vacation">Planer</h1>
+                    </div>
+                    <div class="text-income font-bold" style="font-size:0.8rem; text-align:right">Dostępne: ${formatPLN(stats.dostepne)}</div>
+                </div>
+
+                <div class="card mb-10">
+                    <div class="input-group">
+                        <input id="vac-name" placeholder="Nazwa wyjazdu">
+                        <input id="vac-date" placeholder="Data">
+                        <button style="background-color: var(--vacation-color);" onclick="window.addVacation()">Dodaj</button>
+                    </div>
+                </div>
+
+                <div class="scrollable">
+                    ${data[currentYear].wakacje.map(w => {
+                        const wydano = w.wydatki.reduce((a,b)=>a+b.kwota, 0);
+                        return `
+                        <div class="card mb-10">
+                            <div class="flex space-between center">
+                                <div>
+                                    <div class="text-xl">${w.nazwa}</div>
+                                    <small style="color: gray;">${w.data}</small>
+                                </div>
+                                <div class="flex gap-5">
+                                    <button class="btn-nav" onclick="window.renderVacationDetails('${w.id}')">Szczegóły</button>
+                                    <button style="background: var(--delete-color); padding:6px 10px;" onclick="window.deleteVacation('${w.id}')">X</button>
+                                </div>
+                            </div>
+                            <div class="flex gap-20 mt-5" style="font-size:0.85rem">
+                                <span class="text-accent">Budżet: ${formatPLN(w.budzet)}</span>
+                                <span class="text-expense">Wydano: ${formatPLN(wydano)}</span>
+                            </div>
+                        </div>`;
+                    }).join('')}
+                </div>
+            `;
+        }
+        function addVacation() {
+            const n = document.getElementById('vac-name').value;
+            const d = document.getElementById('vac-date').value;
+            if(n) {
+                data[currentYear].wakacje.push({id: uuid(), nazwa: n, data: d, budzet: 0.0, wydatki: []});
+                saveData(); renderVacationList();
+            }
+        }
+        function deleteVacation(id) {
+            data[currentYear].wakacje = data[currentYear].wakacje.filter(w => w.id !== id);
+            saveData(); renderVacationList();
+        }
+
+        function renderVacationDetails(id) {
+            currentView = "vacation_details";
+            const vac = data[currentYear].wakacje.find(w => w.id === id);
+            const stats = obliczStanWakacji(currentYear);
+            const wydano = vac.wydatki.reduce((a,b)=>a+b.kwota, 0);
+            const pozostalo = vac.budzet - wydano;
+            const maxBudget = vac.budzet + stats.dostepne; 
+
+            appElem.innerHTML = `
+                <div class="flex space-between center mb-10">
+                    <button class="btn-nav" onclick="window.renderVacationList()">←</button>
+                    <h1 class="text-xl">${vac.nazwa}</h1>
+                </div>
+
+                <div class="card mb-10 stats-row">
+                    <div class="text-center">
+                        <div style="color:gray; font-size:0.8rem">BUDŻET</div>
+                        <div class="text-xl text-accent">${formatPLN(vac.budzet)}</div>
+                    </div>
+                    <div class="text-center">
+                        <div style="color:gray; font-size:0.8rem">WYDANO</div>
+                        <div class="text-xl text-expense">${formatPLN(wydano)}</div>
+                    </div>
+                    <div class="text-center">
+                        <div style="color:gray; font-size:0.8rem">POZOSTAŁO</div>
+                        <div class="text-xl" style="color: ${pozostalo>=0 ? 'var(--income-color)':'var(--delete-color)'}">${formatPLN(pozostalo)}</div>
+                    </div>
+                </div>
+
+                <div class="flex-col gap-10 mb-10">
+                    <div class="card flex-col gap-5">
+                        <span style="font-size:0.9rem">Edytuj Budżet (Max: ${formatPLN(maxBudget)}):</span>
+                        <div class="input-group">
+                            <input id="vb-val" type="number" value="${vac.budzet}">
+                            <button style="background: var(--vacation-color);" onclick="window.updateVacBudget('${id}', ${maxBudget})">Zapisz</button>
+                        </div>
+                    </div>
+                    <div class="card flex-col gap-5">
+                        <span style="font-size:0.9rem">Dodaj Koszt:</span>
+                        <div class="input-group">
+                            <select id="vk-cat" style="flex:1"><option>Transport</option><option>Nocleg</option><option>Jedzenie</option><option>Atrakcje</option></select>
+                            <input id="vk-desc" placeholder="Opis" style="flex:1">
+                        </div>
+                        <div class="input-group">
+                            <input id="vk-amt" type="number" placeholder="Kwota" style="flex:1.5">
+                            <button style="background: var(--expense-color); flex:1" onclick="window.addVacExpense('${id}')">Dodaj</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card scrollable">
+                    <table>
+                        <tbody>
+                        ${vac.wydatki.map(x => `
+                            <tr>
+                                <td><div style="font-size:0.8rem; color:gray">${x.kategoria}</div>${x.opis}</td>
+                                <td style="text-align:right">${formatPLN(x.kwota)}</td>
+                                <td style="text-align:right"><button style="background: var(--delete-color); padding: 2px 6px; font-size:0.7rem" onclick="window.delVacExp('${id}', '${x.id}')">X</button></td>
+                            </tr>
+                        `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+        function updateVacBudget(vid, max) {
+            const v = parseFloat(document.getElementById('vb-val').value);
+            if(v <= max) {
+                const vac = data[currentYear].wakacje.find(w => w.id === vid);
+                vac.budzet = v;
+                saveData(); renderVacationDetails(vid);
+            } else {
+                alert("Brak wystarczających środków w skarbonce!");
+            }
+        }
+        function addVacExpense(vid) {
+            const c = document.getElementById('vk-cat').value;
+            const o = document.getElementById('vk-desc').value;
+            const a = parseFloat(document.getElementById('vk-amt').value);
+            if(a>0) {
+                const vac = data[currentYear].wakacje.find(w => w.id === vid);
+                vac.wydatki.push({id: uuid(), kategoria: c, opis: o, kwota: a});
+                saveData(); renderVacationDetails(vid);
+            }
+        }
+        function delVacExp(vid, eid) {
+            const vac = data[currentYear].wakacje.find(w => w.id === vid);
+            vac.wydatki = vac.wydatki.filter(x => x.id !== eid);
+            saveData(); renderVacationDetails(vid);
+        }
+
+        function renderReport() {
+            currentView = "report";
+            let totalW = 0, totalWy = 0;
+            
+            let catsW = {}; ZRODLA.forEach(z => catsW[z] = 0);
+            let catsWy = {}; KATEGORIE.forEach(k => catsWy[k] = 0);
+
+            Object.values(data[currentYear].miesiace).forEach(m => {
+                m.wplywy.forEach(x => { catsW[x.zrodlo] = (catsW[x.zrodlo]||0)+x.kwota; totalW += x.kwota; });
+                m.wydatki.forEach(x => { catsWy[x.kategoria] = (catsWy[x.kategoria]||0)+x.kwota; totalWy += x.kwota; });
+            });
+            let wakKoszt = 0;
+            data[currentYear].wakacje.forEach(w => {
+                w.wydatki.forEach(x => { wakKoszt += x.kwota; });
+            });
+            totalWy += wakKoszt;
+            
+            const stats = obliczStanWakacji(currentYear);
+            const totalSkarbonki = Object.values(data[currentYear].skarbonki.cele).reduce((a,b)=>a+b,0);
+            const dostepneOszcz = totalSkarbonki - stats.zarezerwowane;
+
+            appElem.innerHTML = `
+                <div class="flex center gap-10 mb-10 p-10">
+                    <button class="btn-nav" onclick="window.renderDashboard()">← Wróć</button>
+                    <h1 class="text-xl">Raport ${currentYear}</h1>
+                </div>
+
+                <div class="card mb-10 stats-row">
+                    <div style="text-align:left"><div class="text-income font-bold">WPŁYWY</div><div class="text-xl">${formatPLN(totalW)}</div></div>
+                    <div style="text-align:left"><div class="text-expense font-bold">WYDATKI</div><div class="text-xl">${formatPLN(totalWy)}</div></div>
+                    <div style="text-align:left"><div class="text-savings font-bold">OSZCZĘDNOŚCI (WOLNE)</div><div class="text-xl">${formatPLN(dostepneOszcz)}</div></div>
+                </div>
+
+                <div class="grid-3">
+                    <div class="card scrollable">
+                        <h2 class="text-income mb-5" style="font-size:1rem">Wpływy</h2>
+                        ${Object.entries(catsW).map(([k,v])=>`<div class="flex space-between p-10" style="border-bottom:1px solid #333"><span>${k}</span><b>${formatPLN(v)}</b></div>`).join('')}
+                    </div>
+                    <div class="card scrollable">
+                        <h2 class="text-expense mb-5" style="font-size:1rem">Wydatki</h2>
+                        ${Object.entries(catsWy).map(([k,v])=>`<div class="flex space-between p-10" style="border-bottom:1px solid #333"><span>${k}</span><b>${formatPLN(v)}</b></div>`).join('')}
+                        ${wakKoszt > 0 ? `<div class="flex space-between p-10 text-vacation font-bold"><span>WAKACJE</span><span>${formatPLN(wakKoszt)}</span></div>` : ''}
+                    </div>
+                    <div class="card scrollable">
+                        <h2 class="text-savings mb-5" style="font-size:1rem">Stan Skarbonek</h2>
+                        ${Object.entries(data[currentYear].skarbonki.cele).map(([k,v])=> {
+                            let display = v;
+                            if (k === "Na Wakacje") { display = stats.dostepne; }
+                            return `<div class="flex space-between p-10" style="border-bottom:1px solid #333"><span>${k}</span><b>${formatPLN(display)}</b></div>`;
+                        }).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function openModal(title, fields, callback) {
+            document.getElementById('modal-title').innerText = title;
+            const container = document.getElementById('modal-fields');
+            container.innerHTML = '';
+            fields.forEach(f => {
+                container.innerHTML += `<label class="mb-5 block" style="font-size:0.9rem">${f.label}</label><input id="modal-${f.key}" type="${f.type}" value="${f.val}" style="width:100%">`;
+            });
+            modalCallback = () => {
+                const res = {};
+                fields.forEach(f => {
+                    let val = document.getElementById(`modal-${f.key}`).value;
+                    if(f.type === 'number') val = parseFloat(val);
+                    res[f.key] = val;
+                });
+                callback(res);
+                closeModal();
+            };
+            document.getElementById('modal-overlay').classList.remove('hidden');
+        }
+        function saveModal() { if(modalCallback) modalCallback(); }
+        function closeModal() { document.getElementById('modal-overlay').classList.add('hidden'); }
+
+        window.selectYear = selectYear;
+        window.renderStartScreen = renderStartScreen;
+        window.renderDashboard = renderDashboard;
+        window.renderMonthScreen = renderMonthScreen;
+        window.addIncome = addIncome;
+        window.addExpense = addExpense;
+        window.renderExpenseTable = renderExpenseTable;
+        window.deleteItem = deleteItem;
+        window.editItem = editItem;
+        window.renderSavingsScreen = renderSavingsScreen;
+        window.addSaving = addSaving;
+        window.deleteSaving = deleteSaving;
+        window.renderVacationList = renderVacationList;
+        window.addVacation = addVacation;
+        window.deleteVacation = deleteVacation;
+        window.renderVacationDetails = renderVacationDetails;
+        window.updateVacBudget = updateVacBudget;
+        window.addVacExpense = addVacExpense;
+        window.delVacExp = delVacExp;
+        window.renderReport = renderReport;
+        window.saveModal = saveModal;
+        window.closeModal = closeModal;
+        window.updateSavingsFilter = updateSavingsFilter;
+        window.editSaving = editSaving;
+        window.editItem = editItem; 
+
+    </script>
+</body>
+</html>
