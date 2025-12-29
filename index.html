@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>My Finance Hub</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-color: #1E1E1E;
+            --accent-color: #00ADB5;
+            --income-color: #00C896;
+            --expense-color: #FF4081;
+            --savings-color: #7C4DFF;
+            --vacation-color: #2979FF;
+            --delete-color: #D32F2F;
+            --edit-color: #FFA000;
+            --text-color: #FFFFFF;
+            --text-secondary: #B0B0B0;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; -webkit-tap-highlight-color: transparent; }
+        
+        body { background-color: var(--bg-color); color: var(--text-color); height: 100vh; display: flex; flex-direction: column; overflow: hidden; font-size: 14px; }
+        
+        .container { 
+            width: 100%; max-width: 1600px; margin: 0 auto; padding: 10px; 
+            height: 100%; display: flex; flex-direction: column; 
+        }
+        .hidden { display: none !important; }
+        .flex { display: flex; }
+        .flex-col { display: flex; flex-direction: column; }
+        .center { align-items: center; justify-content: center; }
+        .space-between { justify-content: space-between; }
+        .gap-5 { gap: 5px; }
+        .gap-10 { gap: 10px; }
+        .gap-20 { gap: 20px; }
+        .mt-5 { margin-top: 5px; }
+        .mt-10 { margin-top: 10px; }
+        .mb-5 { margin-bottom: 5px; }
+        .mb-10 { margin-bottom: 10px; }
+        
+        .text-xl { font-size: 1.2rem; font-weight: bold; }
+        .text-2xl { font-size: 1.5rem; font-weight: bold; }
+        
+        .text-accent { color: var(--accent-color); }
+        .text-income { color: var(--income-color); }
+        .text-expense { color: var(--expense-color); }
+        .text-savings { color: var(--savings-color); }
+        .text-vacation { color: var(--vacation-color); }
+
+        button {
+            cursor: pointer; border: none; border-radius: 6px; padding: 8px 12px; 
+            font-size: 0.9rem; transition: filter 0.2s; color: white; font-weight: bold;
+            touch-action: manipulation;
+        }
+        button:active { filter: brightness(0.8); transform: scale(0.98); }
+        
+        .btn-tile { background-color: var(--card-color); height: 80px; font-size: 1.2rem; border-radius: 12px; width: 100%; }
+        .btn-nav { background: transparent; border: 1px solid gray; padding: 6px 12px; font-size: 0.85rem; }
+        .btn-add { width: 36px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 6px; flex-shrink: 0;}
+
+        input, select {
+            background-color: #2B2B2B; border: 1px solid #333; color: white;
+            padding: 8px; border-radius: 6px; outline: none; font-size: 14px; 
+            width: 100%; height: 36px;
+        }
+        input:focus { border-color: var(--accent-color); }
+
+        .card { 
+            background-color: var(--card-color); 
+            border-radius: 15px; 
+            padding: 12px; 
+            display: flex; 
+            flex-direction: column;
+            min-height: 0; 
+        }
+        
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 5px;}
+
+        .scrollable { 
+            overflow-y: auto; 
+            flex: 1; 
+            padding-right: 2px;
+        }
+        .scrollable::-webkit-scrollbar { width: 4px; }
+        .scrollable::-webkit-scrollbar-track { background: transparent; }
+        .scrollable::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 2px; }
+        th { text-align: left; padding: 6px 4px; background-color: #151515; color: #ddd; position: sticky; top: 0; z-index: 1; font-size: 0.8rem; font-weight: bold;}
+        td { padding: 6px 4px; font-size: 0.85rem; vertical-align: middle; border-bottom: none; }
+        tbody tr:hover { background-color: rgba(255,255,255,0.03); border-radius: 4px; }
+
+        .dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; grid-template-rows: repeat(3, 1fr); gap: 15px; flex: 1; overflow: hidden; }
+        .month-screen-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; flex: 1; min-height: 0; overflow: hidden; }
+        .month-left-col { display: flex; flex-direction: column; gap: 15px; overflow: hidden; }
+        .input-group { display: flex; gap: 5px; margin-bottom: 8px; }
+        .footer { background-color: #151515; padding: 10px 15px; margin-top: 5px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; font-size: 0.9rem; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; flex: 1; overflow: hidden; }
+        .stats-row { display: flex; justify-content: space-between; width: 100%; }
+
+        #screen-login {
+            height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
+        }
+        .login-card {
+            background-color: var(--card-color); padding: 30px; border-radius: 20px; width: 90%; max-width: 400px;
+            display: flex; flex-direction: column; gap: 15px;
+        }
+
+        @media (max-width: 900px) {
+            body { height: auto; min-height: 100vh; overflow-y: auto; }
+            .container { height: auto; display: block; padding: 8px; }
+            
+            .text-2xl { font-size: 1.3rem; }
+            .text-xl { font-size: 1.1rem; }
+            .gap-20 { gap: 10px; }
+            .card { padding: 10px; margin-bottom: 10px; height: auto; min-height: auto; }
+            
+            .dashboard-grid { display: flex; flex-direction: column; overflow: visible; gap: 10px; }
+            .month-grid { display: grid; grid-template-columns: repeat(3, 1fr) !important; gap: 5px !important; }
+            .month-grid > button { height: 45px !important; font-size: 0.8rem !important; padding: 0 !important; }
+
+            .month-screen-layout { display: flex; flex-direction: column; overflow: visible; gap: 10px; }
+            .month-left-col { display: contents; } 
+            
+            #month-income-card { order: 1; flex: none; }
+            #month-expense-card { order: 2; flex: none; }
+            #month-savings-card { order: 3; flex: none; }
+
+            .month-screen-layout .scrollable, #sav-add-card .scrollable, .grid-3 .scrollable {
+                height: auto !important;
+                max-height: none !important;
+                overflow: visible;
+            }
+
+            #sav-add-card { flex: none; height: auto; }
+            #sav-status-card { flex: none; height: auto; }
+            .sav-row { margin-bottom: 2px !important; padding-bottom: 2px !important; border-bottom: 1px solid #333; }
+
+            .grid-3 { display: flex !important; flex-direction: column; overflow: visible; }
+            .stats-row { flex-direction: column; gap: 5px; align-items: center; }
+            .stats-row > div { width: 100%; border-bottom: 1px solid #333; padding-bottom: 5px; }
+            
+            .input-group { flex-wrap: nowrap; }
+            .input-group > select, .input-group > input { padding: 6px; height: 34px; font-size: 13px; }
+            .btn-add { width: 34px; height: 34px; }
+            .footer { flex-direction: column; gap: 5px; text-align: center; padding: 10px; margin-bottom: 20px; }
+        }
+
+        #modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 1000;
+        }
+        .modal { background: var(--card-color); padding: 20px; border-radius: 15px; width: 90%; max-width: 350px; }
+
+        #status-bar {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); 
+            background: #333; padding: 6px 15px; border-radius: 20px; font-size: 0.8rem; 
+            opacity: 0; transition: opacity 0.5s; pointer-events: none; z-index: 2000;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="app">
+        <div id="screen-login">
+            <div class="login-card">
+                <h1 class="text-2xl text-accent center" style="text-align:center">My Finance Hub</h1>
+                <input id="email" type="email" placeholder="Email">
+                <input id="password" type="password" placeholder="Password">
+                <button style="background-color: var(--accent-color); margin-top:10px;" onclick="window.login()">Login</button>
+                <p id="auth-error" style="color: red; text-align: center; font-size: 0.9rem;"></p>
+            </div>
+        </div>
+    </div>
+    
+    <div id="status-bar">Saved</div>
+
+    <div id="modal-overlay" class="hidden">
+        <div class="modal">
+            <h2 id="modal-title" class="mb-10 text-xl">Edit</h2>
+            <div id="modal-fields" class="flex-col gap-10"></div>
+            <div class="flex space-between mt-10 gap-10">
+                <button onclick="window.closeModal()" style="background-color: #444; flex:1;">Cancel</button>
+                <button onclick="window.saveModal()" style="background-color: var(--accent-color); flex:1;">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+
+        // CONFIGURE YOUR FIREBASE CREDENTIALS HERE
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.firebasestorage.app",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        let DOC_ID = null;
+
+        const YEARS = ["2026", "2027", "2028", "2029", "2030", "2031"];
+        const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        const CATEGORIES = ["Home", "Debt", "Food", "Bills", "Beauty", "Health", "Transport", "Other"];
+        const SOURCES = ["Salary", "Bonus", "Gift"];
+        const GOALS = ["Emergency Fund", "Unexpected", "Vacation"];
+        
+        let data = {};
+        let currentYear = null;
+        let currentMonth = null;
+        let savingsFilterMonth = "All"; 
+        let modalCallback = null;
+        let saveTimeout = null;
+        let currentView = "login"; 
+
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleGesture();
+        });
+
+        function handleGesture() {
+            if (touchEndX - touchStartX > 100) { 
+                goBack();
+            }
+        }
+
+        function goBack() {
+            if (currentView === "month") renderDashboard();
+            else if (currentView === "savings") renderDashboard();
+            else if (currentView === "vacation_list") renderDashboard();
+            else if (currentView === "report") renderDashboard();
+            else if (currentView === "dashboard") renderStartScreen();
+            else if (currentView === "vacation_details") renderVacationList();
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                DOC_ID = user.uid;
+                loadData();
+            } else {
+                renderLoginScreen();
+            }
+        });
+
+        window.login = async () => {
+            const e = document.getElementById('email').value;
+            const p = document.getElementById('password').value;
+            try {
+                await signInWithEmailAndPassword(auth, e, p);
+            } catch (err) {
+                document.getElementById('auth-error').innerText = "Login error: " + err.message;
+            }
+        }
+
+        window.logout = () => {
+            signOut(auth);
+        }
+
+        function renderLoginScreen() {
+            currentView = "login";
+            document.getElementById('app').innerHTML = `
+                <div id="screen-login">
+                    <div class="login-card">
+                        <h1 class="text-2xl text-accent center" style="text-align:center">Login</h1>
+                        <input id="email" type="email" placeholder="Email">
+                        <input id="password" type="password" placeholder="Password">
+                        <button style="background-color: var(--accent-color); margin-top:10px;" onclick="window.login()">Login</button>
+                        <p id="auth-error" style="color: red; text-align: center; font-size: 0.9rem;"></p>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function loadData() {
+            try {
+                const docRef = doc(db, "users", DOC_ID);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) { data = docSnap.data(); } else { data = {}; }
+                renderStartScreen();
+            } catch (error) {
+                document.getElementById('app').innerHTML = `<h1 style="color:red; text-align:center;">Error: ${error.message}</h1>`;
+            }
+        }
+
+        async function saveData() {
+            const status = document.getElementById('status-bar');
+            status.innerText = "Saving...";
+            status.style.opacity = 1;
+            try {
+                await setDoc(doc(db, "users", DOC_ID), data);
+                status.innerText = "Saved ✓";
+                if(saveTimeout) clearTimeout(saveTimeout);
+                saveTimeout = setTimeout(() => { status.style.opacity = 0; }, 2000);
+            } catch (error) {
+                status.innerText = "Error saving!";
+                status.style.color = "red";
+            }
+        }
+
+        function initYear(year) {
+            if (!data[year]) {
+                data[year] = {
+                    months: {},
+                    savings: { goals: { "Emergency Fund": 0.0, "Vacation": 0.0, "Unexpected": 0.0 }, history: [] },
+                    vacations: []
+                };
+                saveData();
+            }
+        }
+
+        function initMonth(year, month) {
+            initYear(year);
+            if (!data[year].months[month]) {
+                data[year].months[month] = { incomes: [], expenses: [] };
+                saveData();
+            }
+        }
+
+        function calculateFreeFunds(year) {
+            initYear(year);
+            let inc = 0, exp = 0;
+            Object.values(data[year].months).forEach(m => {
+                inc += m.incomes.reduce((sum, x) => sum + x.amount, 0);
+                exp += m.expenses.reduce((sum, x) => sum + x.amount, 0);
+            });
+            let saved = data[year].savings.history.reduce((sum, x) => sum + x.amount, 0);
+            return inc - exp - saved;
+        }
+
+        function calculateVacationStatus(year) {
+            initYear(year);
+            let accumulated = data[year].savings.goals["Vacation"] || 0.0;
+            let reserved = data[year].vacations.reduce((sum, w) => sum + w.budget, 0);
+            return { accumulated, reserved, available: accumulated - reserved };
+        }
+
+        function formatMoney(amount) {
+            return parseFloat(amount).toFixed(2) + " $";
+        }
+
+        function uuid() { return crypto.randomUUID(); }
+        function getToday() { return new Date().toISOString().split('T')[0]; }
+
+        const appElem = document.getElementById('app');
+
+        function renderStartScreen() {
+            currentView = "start";
+            appElem.innerHTML = `
+                <div id="screen-start">
+                    <div class="flex space-between center" style="width:100%; margin-bottom: 20px;">
+                        <h1 class="text-2xl text-accent">Select Year:</h1>
+                        <button onclick="window.logout()" style="background:#D32F2F; font-size:0.8rem; padding: 6px 12px;">Logout</button>
+                    </div>
+                    <div class="flex gap-10" style="flex-wrap: wrap; justify-content: center;">
+                        ${YEARS.map(y => `<button class="btn-tile" style="width: 100px; height: 60px;" onclick="window.selectYear('${y}')">${y}</button>`).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function selectYear(year) { currentYear = year; initYear(year); renderDashboard(); }
+
+        function renderDashboard() {
+            currentView = "dashboard";
+            const stats = calculateVacationStatus(currentYear);
+            const totalSavings = Object.values(data[currentYear].savings.goals).reduce((a,b)=>a+b,0);
+            const availableSavings = totalSavings - stats.reserved;
+
+            appElem.innerHTML = `
+                <div class="flex space-between center mb-10">
+                    <button class="btn-nav" onclick="window.renderStartScreen()">← Year</button>
+                    <h1 class="text-xl">Dashboard ${currentYear}</h1>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="card" style="grid-row: span 3; overflow: hidden;">
+                        <div class="month-grid" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:5px; height:100%; overflow-y:auto;">
+                            ${MONTHS.map((m, i) => {
+                                const now = new Date();
+                                const realYear = now.getFullYear();
+                                const realMonth = now.getMonth();
+                                const selYear = parseInt(currentYear);
+                                
+                                let style = "background: #2B2B2B; border-radius: 8px;"; 
+                                if (selYear < realYear) {
+                                    style = "background: #111; color: #444; border-radius: 8px; border: 1px solid #222;";
+                                } else if (selYear === realYear) {
+                                    if (i < realMonth) {
+                                        style = "background: #151515; color: #555; border-radius: 8px;";
+                                    } else if (i === realMonth) {
+                                        style = "background: var(--accent-color); color: #fff; font-weight: bold; border-radius: 8px; box-shadow: 0 0 8px rgba(0,173,181,0.4); transform: scale(1.05);";
+                                    }
+                                }
+                                return `<button onclick="window.renderMonthScreen('${m}')" style="${style}">${m}</button>`;
+                            }).join('')}
+                        </div>
+                    </div>
+
+                    <div class="card center flex-col">
+                        <h2 class="text-savings text-xl">Savings</h2>
+                        <div class="text-xl mt-5 mb-5">${formatMoney(availableSavings)}</div>
+                        <button style="background-color: var(--savings-color); width:100%" onclick="window.renderSavingsScreen()">Manage ></button>
+                    </div>
+
+                    <div class="card center flex-col">
+                        <h2 class="text-vacation text-xl">Vacation</h2>
+                        <p style="color: gray; margin-top: 5px; font-size:0.8rem; text-align:center">Available: ${formatMoney(stats.available)}</p>
+                        <button style="background-color: var(--vacation-color); margin-top: 10px; width:100%" onclick="window.renderVacationList()">Plan ></button>
+                    </div>
+
+                    <div class="card center flex-col">
+                        <h2 class="text-xl">Report</h2>
+                        <button style="background-color: #546E7A; margin-top: 10px; width:100%" onclick="window.renderReport()">Annual Report ></button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderMonthScreen(month) {
+            currentView = "month";
+            currentMonth = month;
+            initMonth(currentYear, currentMonth);
+            const mData = data[currentYear].months[month];
+            
+            const free = calculateFreeFunds(currentYear);
+            const sumInc = mData.incomes.reduce((a,b) => a+b.amount, 0);
+            const sumExp = mData.expenses.reduce((a,b) => a+b.amount, 0);
+            
+            const savedMonth = data[currentYear].savings.history.filter(x => x.month === month);
+            const sumSaved = savedMonth.reduce((a,b) => a+b.amount, 0);
+            const balance = sumInc - sumExp - sumSaved;
+
+            let summarySaved = { "Emergency Fund": 0, "Vacation": 0, "Unexpected": 0 };
+            savedMonth.forEach(w => {
+                if (summarySaved[w.goal] !== undefined) {
+                    summarySaved[w.goal] += w.amount;
+                }
+            });
+
+            appElem.innerHTML = `
+                <div class="flex space-between center mb-5" style="flex-wrap:wrap; gap:5px;">
+                    <div class="flex center gap-10">
+                        <button class="btn-nav" onclick="window.renderDashboard()">←</button>
+                        <h1 class="text-xl">${month}</h1>
+                    </div>
+                    <div class="text-accent font-bold" style="font-size:0.9rem">FREE: ${formatMoney(free)}</div>
+                </div>
+
+                <div class="month-screen-layout">
+                    <div class="month-left-col">
+                        <div class="card flex-col" id="month-income-card" style="flex: 1; min-height: 0;">
+                            <h2 class="text-income mb-5" style="font-size:1rem">Incomes</h2>
+                            <div class="input-group">
+                                <select id="inc-src" style="flex:2">${SOURCES.map(z=>`<option>${z}</option>`).join('')}</select>
+                                <input id="inc-amount" type="number" placeholder="Amount" style="flex:1">
+                                <button class="btn-add" style="background-color: var(--income-color);" onclick="window.addIncome()">+</button>
+                            </div>
+                            <div class="scrollable">
+                                <table>
+                                    <tbody>
+                                    ${mData.incomes.map(item => `
+                                        <tr>
+                                            <td>${item.source}</td>
+                                            <td style="text-align:right">${formatMoney(item.amount)}</td>
+                                            <td style="text-align:right; width:50px;">
+                                                <button style="padding: 2px 6px; background: var(--edit-color); font-size:0.7rem; margin-right:2px;" onclick='window.editItem("income", "${item.id}")'>E</button>
+                                                <button style="padding: 2px 6px; background: var(--delete-color); font-size:0.7rem" onclick='window.deleteItem("income", "${item.id}")'>X</button>
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="mt-5 text-income font-bold" style="font-size:0.9rem">Total: ${formatMoney(sumInc)}</div>
+                        </div>
+
+                        <div class="card flex-col" id="month-savings-card" style="flex: 1; min-height: 0;">
+                            <h2 class="text-savings mb-5" style="font-size:1rem">Saved this month</h2>
+                            <div class="scrollable">
+                                <table>
+                                    <tbody>
+                                    ${Object.entries(summarySaved).map(([goal, amt]) => `
+                                        <tr><td>${goal}</td><td style="text-align:right">${formatMoney(amt)}</td></tr>
+                                    `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="mt-5 text-savings font-bold" style="font-size:0.9rem">Total: ${formatMoney(sumSaved)}</div>
+                        </div>
+                    </div>
+
+                    <div class="card flex-col" id="month-expense-card" style="min-height: 0;">
+                        <div class="card-header">
+                            <div>
+                                <h2 class="text-expense" style="font-size:1rem; margin-bottom:0;">Expenses</h2>
+                                <span class="text-expense" style="font-size:0.85rem; font-weight:bold;" id="exp-total">Total: ${formatMoney(sumExp)}</span>
+                            </div>
+                            <div class="flex gap-5">
+                                <input type="date" id="exp-date-filter" onchange="window.renderExpenseTable()" style="width:auto; padding:2px; height:28px; font-size:0.8rem">
+                                <select id="exp-filter" onchange="window.renderExpenseTable()" style="padding: 2px; width:auto; height:28px; font-size:0.8rem">
+                                    <option value="All">Cat: All</option>
+                                    ${CATEGORIES.map(k=>`<option>${k}</option>`).join('')}
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="input-group">
+                            <select id="exp-cat" style="flex:1"><option disabled selected>Category</option>${CATEGORIES.map(k=>`<option>${k}</option>`).join('')}</select>
+                            <input id="exp-desc" placeholder="Description" style="flex:1.5">
+                        </div>
+                        <div class="input-group">
+                            <input id="exp-date" type="date" value="${getToday()}" style="flex:1">
+                            <input id="exp-amount" type="number" placeholder="Amount" style="flex:1">
+                            <button class="btn-add" style="background-color: var(--expense-color); flex:0.5" onclick="window.addExpense()">+</button>
+                        </div>
+                        
+                        <div class="scrollable">
+                            <table id="exp-table"></table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="footer">
+                    <div class="text-income">IN: ${formatMoney(sumInc)}</div>
+                    <div class="text-expense">OUT: ${formatMoney(sumExp)}</div>
+                    <div class="text-savings">SAVED: ${formatMoney(sumSaved)}</div>
+                    <div style="color: ${balance >= 0 ? 'var(--income-color)' : 'var(--delete-color)'}; font-weight: bold;">
+                        BALANCE: ${formatMoney(balance)}
+                    </div>
+                </div>
+            `;
+            renderExpenseTable();
+        }
+
+        function addIncome() {
+            const src = document.getElementById('inc-src').value;
+            const amt = parseFloat(document.getElementById('inc-amount').value);
+            if(amt > 0) {
+                data[currentYear].months[currentMonth].incomes.push({id: uuid(), source: src, amount: amt});
+                saveData(); renderMonthScreen(currentMonth);
+            }
+        }
+        function addExpense() {
+            const cat = document.getElementById('exp-cat').value;
+            const desc = document.getElementById('exp-desc').value;
+            const date = document.getElementById('exp-date').value;
+            const amt = parseFloat(document.getElementById('exp-amount').value);
+            if(amt > 0) {
+                data[currentYear].months[currentMonth].expenses.push({id: uuid(), category: cat, description: desc, date: date, amount: amt});
+                saveData(); renderMonthScreen(currentMonth);
+            }
+        }
+        function renderExpenseTable() {
+            const filterCat = document.getElementById('exp-filter').value;
+            const filterDate = document.getElementById('exp-date-filter').value;
+            
+            const table = document.getElementById('exp-table');
+            const allExps = data[currentYear].months[currentMonth].expenses;
+            
+            const filtered = allExps.filter(e => {
+                const matchCat = filterCat === "All" || e.category === filterCat;
+                const matchDate = !filterDate || e.date === filterDate;
+                return matchCat && matchDate;
+            });
+            
+            table.innerHTML = `
+                <thead><tr><th>Date/Cat</th><th>Desc</th><th>Amount</th><th>Action</th></tr></thead>
+                <tbody>
+                ${filtered.map(item => `
+                <tr>
+                    <td><div style="font-size:0.75em; color:gray">${item.date || ''}</div>${item.category}</td>
+                    <td>${item.description}</td>
+                    <td style="text-align:right">${formatMoney(item.amount)}</td>
+                    <td style="text-align:right; width:50px;">
+                        <button style="padding: 2px 6px; background: var(--edit-color); font-size:0.7rem; margin-right:2px;" onclick='window.editItem("expense", "${item.id}")'>E</button>
+                        <button style="padding: 2px 6px; background: var(--delete-color); font-size:0.7rem" onclick='window.deleteItem("expense", "${item.id}")'>X</button>
+                    </td>
+                </tr>
+            `).join('')}
+            </tbody>`;
+            
+            const total = filtered.reduce((a,b)=>a+b.amount,0);
+            const totalElem = document.getElementById('exp-total');
+            if(totalElem) totalElem.innerText = "Total: " + formatMoney(total);
+        }
+        function deleteItem(type, id) {
+            const m = data[currentYear].months[currentMonth];
+            if(type === 'income') m.incomes = m.incomes.filter(x => x.id !== id);
+            if(type === 'expense') m.expenses = m.expenses.filter(x => x.id !== id);
+            saveData(); renderMonthScreen(currentMonth);
+        }
+        function editItem(type, id) {
+            const m = data[currentYear].months[currentMonth];
+            const arr = type === 'income' ? m.incomes : m.expenses;
+            const item = arr.find(x => x.id === id);
+            if(!item) return;
+            const fields = [];
+            if(type === 'income') {
+                fields.push({label: 'Source', key: 'source', val: item.source, type: 'text'});
+                fields.push({label: 'Amount', key: 'amount', val: item.amount, type: 'number'});
+            } else {
+                fields.push({label: 'Category', key: 'category', val: item.category, type: 'text'});
+                fields.push({label: 'Description', key: 'description', val: item.description, type: 'text'});
+                fields.push({label: 'Date', key: 'date', val: item.date || getToday(), type: 'date'});
+                fields.push({label: 'Amount', key: 'amount', val: item.amount, type: 'number'});
+            }
+            openModal("Edit Item", fields, (newVals) => {
+                Object.assign(item, newVals);
+                saveData();
+                renderMonthScreen(currentMonth);
+            });
+        }
+
+        function renderSavingsScreen() {
+            currentView = "savings";
+            const free = calculateFreeFunds(currentYear);
+            const goals = data[currentYear].savings.goals;
+            const hist = data[currentYear].savings.history;
+            const stats = calculateVacationStatus(currentYear);
+            const totalAvailable = Object.values(goals).reduce((a,b)=>a+b,0) - stats.reserved;
+
+            let filteredHist = hist;
+            if (savingsFilterMonth !== "All") {
+                filteredHist = hist.filter(h => h.month === savingsFilterMonth);
+            }
+            const filteredSum = filteredHist.reduce((a,b)=>a+b.amount,0);
+
+            const nowMonth = MONTHS[new Date().getMonth()];
+
+            appElem.innerHTML = `
+                <div class="flex space-between center mb-10">
+                    <div class="flex center gap-10">
+                        <button class="btn-nav" onclick="window.renderDashboard()">←</button>
+                        <h1 class="text-xl text-savings">Savings</h1>
+                    </div>
+                </div>
+
+                <div class="month-screen-layout">
+                    <div class="card flex-col" id="sav-add-card" style="flex: 2; overflow: hidden; min-height:0;">
+                        <h3 class="text-income mb-5" style="font-size:1rem">Free Funds: ${formatMoney(free)}</h3>
+                        
+                        <div class="input-group">
+                            <select id="sav-month" style="flex:1">
+                                ${MONTHS.map(m => `<option ${m === nowMonth ? 'selected' : ''}>${m}</option>`).join('')}
+                            </select>
+                            <select id="sav-target" style="flex:2">${GOALS.map(k=>`<option>${k}</option>`).join('')}</select>
+                        </div>
+                        <div class="input-group">
+                            <input id="sav-date" type="date" value="${getToday()}" style="flex:1">
+                            <input id="sav-amount" type="number" placeholder="Amount" style="flex:1">
+                            <button style="background-color: var(--savings-color); flex:1" onclick="window.addSaving()">Deposit</button>
+                        </div>
+
+                        <div class="flex space-between center mt-10 mb-5">
+                            <span style="font-size:0.9rem">History:</span>
+                            <select id="sav-history-filter" onchange="window.updateSavingsFilter()" style="width:100px; height:30px; padding:2px;">
+                                <option value="All" ${savingsFilterMonth==="All"?"selected":""}>All</option>
+                                ${MONTHS.map(m=>`<option ${savingsFilterMonth===m?"selected":""}>${m}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="scrollable">
+                            <table>
+                                <thead><tr><th>Date/Goal</th><th>Amount</th><th>Action</th></tr></thead>
+                                <tbody>
+                                ${[...filteredHist].reverse().map(item => `
+                                    <tr>
+                                        <td><div style="font-size:0.8rem; color:gray">${item.dateDeposit || item.month}</div>${item.goal}</td>
+                                        <td style="text-align:right">${formatMoney(item.amount)}</td>
+                                        <td style="text-align:right; width:60px;">
+                                            <button style="background: var(--edit-color); font-size: 0.7rem; padding: 2px 6px; margin-right:2px;" onclick="window.editSaving('${item.id}')">E</button>
+                                            <button style="background: var(--delete-color); font-size: 0.7rem; padding: 2px 6px;" onclick="window.deleteSaving('${item.id}')">X</button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mt-5 text-savings" style="font-size:0.9rem; text-align:right">Sum visible: ${formatMoney(filteredSum)}</div>
+                    </div>
+
+                    <div class="flex-col gap-10" id="sav-status-card" style="flex: 1; overflow: hidden; min-height:0;">
+                        <h2 class="text-xl">Status</h2>
+                        <h3 class="text-income text-right" style="font-size:1rem">Available: ${formatMoney(totalAvailable)}</h3>
+                        <div class="scrollable card">
+                            ${Object.entries(goals).map(([k, v]) => {
+                                let displayVal = formatMoney(v);
+                                let extraInfo = "";
+                                if(k === "Vacation") {
+                                    displayVal = formatMoney(stats.available);
+                                    extraInfo = `<div style="font-size:0.75rem; color:gray; text-align:right;">(Reserved: ${formatMoney(stats.reserved)})</div>`;
+                                }
+                                return `
+                                <div class="sav-row flex space-between center">
+                                    <span>${k}</span>
+                                    <div class="text-right">
+                                        <div class="text-savings font-bold">${displayVal}</div>
+                                        ${extraInfo}
+                                    </div>
+                                </div>`;
+                            }).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateSavingsFilter() {
+            savingsFilterMonth = document.getElementById('sav-history-filter').value;
+            renderSavingsScreen();
+        }
+
+        function addSaving() {
+            const m = document.getElementById('sav-month').value;
+            const t = document.getElementById('sav-target').value;
+            const d = document.getElementById('sav-date').value;
+            const a = parseFloat(document.getElementById('sav-amount').value);
+            if(a > 0) {
+                data[currentYear].savings.goals[t] += a;
+                data[currentYear].savings.history.push({id: uuid(), month: m, dateDeposit: d, goal: t, amount: a});
+                saveData(); renderSavingsScreen();
+            }
+        }
+
+        function editSaving(id) {
+            const h = data[currentYear].savings.history;
+            const item = h.find(x => x.id === id);
+            if(!item) return;
+
+            const fields = [
+                {label: 'Month (Accounting)', key: 'month', val: item.month, type: 'text'}, 
+                {label: 'Date', key: 'dateDeposit', val: item.dateDeposit || getToday(), type: 'date'},
+                {label: 'Amount', key: 'amount', val: item.amount, type: 'number'}
+            ];
+
+            openModal("Edit Deposit", fields, (newVals) => {
+                data[currentYear].savings.goals[item.goal] -= item.amount;
+                Object.assign(item, newVals);
+                data[currentYear].savings.goals[item.goal] += item.amount;
+                saveData(); renderSavingsScreen();
+            });
+        }
+
+        function deleteSaving(id) {
+            const h = data[currentYear].savings.history;
+            const item = h.find(x => x.id === id);
+            if(item) {
+                data[currentYear].savings.goals[item.goal] -= item.amount;
+                data[currentYear].savings.history = h.filter(x => x.id !== id);
+                saveData(); renderSavingsScreen();
+            }
+        }
+
+        function renderVacationList() {
+            currentView = "vacation_list";
+            const stats = calculateVacationStatus(currentYear);
+            appElem.innerHTML = `
+                <div class="flex space-between center mb-10">
+                    <div class="flex center gap-10">
+                        <button class="btn-nav" onclick="window.renderDashboard()">←</button>
+                        <h1 class="text-xl text-vacation">Planner</h1>
+                    </div>
+                    <div class="text-income font-bold" style="font-size:0.8rem; text-align:right">Available: ${formatMoney(stats.available)}</div>
+                </div>
+
+                <div class="card mb-10">
+                    <div class="input-group">
+                        <input id="vac-name" placeholder="Trip Name">
+                        <input id="vac-date" placeholder="Date">
+                        <button style="background-color: var(--vacation-color);" onclick="window.addVacation()">Add</button>
+                    </div>
+                </div>
+
+                <div class="scrollable">
+                    ${data[currentYear].vacations.map(w => {
+                        const spent = w.expenses.reduce((a,b)=>a+b.amount, 0);
+                        return `
+                        <div class="card mb-10">
+                            <div class="flex space-between center">
+                                <div>
+                                    <div class="text-xl">${w.name}</div>
+                                    <small style="color: gray;">${w.date}</small>
+                                </div>
+                                <div class="flex gap-5">
+                                    <button class="btn-nav" onclick="window.renderVacationDetails('${w.id}')">Details</button>
+                                    <button style="background: var(--delete-color); padding:6px 10px;" onclick="window.deleteVacation('${w.id}')">X</button>
+                                </div>
+                            </div>
+                            <div class="flex gap-20 mt-5" style="font-size:0.85rem">
+                                <span class="text-accent">Budget: ${formatMoney(w.budget)}</span>
+                                <span class="text-expense">Spent: ${formatMoney(spent)}</span>
+                            </div>
+                        </div>`;
+                    }).join('')}
+                </div>
+            `;
+        }
+        function addVacation() {
+            const n = document.getElementById('vac-name').value;
+            const d = document.getElementById('vac-date').value;
+            if(n) {
+                data[currentYear].vacations.push({id: uuid(), name: n, date: d, budget: 0.0, expenses: []});
+                saveData(); renderVacationList();
+            }
+        }
+        function deleteVacation(id) {
+            data[currentYear].vacations = data[currentYear].vacations.filter(w => w.id !== id);
+            saveData(); renderVacationList();
+        }
+
+        function renderVacationDetails(id) {
+            currentView = "vacation_details";
+            const vac = data[currentYear].vacations.find(w => w.id === id);
+            const stats = calculateVacationStatus(currentYear);
+            const spent = vac.expenses.reduce((a,b)=>a+b.amount, 0);
+            const remaining = vac.budget - spent;
+            const maxBudget = vac.budget + stats.available; 
+
+            appElem.innerHTML = `
+                <div class="flex space-between center mb-10">
+                    <button class="btn-nav" onclick="window.renderVacationList()">←</button>
+                    <h1 class="text-xl">${vac.name}</h1>
+                </div>
+
+                <div class="card mb-10 stats-row">
+                    <div class="text-center">
+                        <div style="color:gray; font-size:0.8rem">BUDGET</div>
+                        <div class="text-xl text-accent">${formatMoney(vac.budget)}</div>
+                    </div>
+                    <div class="text-center">
+                        <div style="color:gray; font-size:0.8rem">SPENT</div>
+                        <div class="text-xl text-expense">${formatMoney(spent)}</div>
+                    </div>
+                    <div class="text-center">
+                        <div style="color:gray; font-size:0.8rem">REMAINING</div>
+                        <div class="text-xl" style="color: ${remaining>=0 ? 'var(--income-color)':'var(--delete-color)'}">${formatMoney(remaining)}</div>
+                    </div>
+                </div>
+
+                <div class="flex-col gap-10 mb-10">
+                    <div class="card flex-col gap-5">
+                        <span style="font-size:0.9rem">Edit Budget (Max: ${formatMoney(maxBudget)}):</span>
+                        <div class="input-group">
+                            <input id="vb-val" type="number" value="${vac.budget}">
+                            <button style="background: var(--vacation-color);" onclick="window.updateVacBudget('${id}', ${maxBudget})">Save</button>
+                        </div>
+                    </div>
+                    <div class="card flex-col gap-5">
+                        <span style="font-size:0.9rem">Add Cost:</span>
+                        <div class="input-group">
+                            <select id="vk-cat" style="flex:1"><option>Transport</option><option>Hotel</option><option>Food</option><option>Fun</option></select>
+                            <input id="vk-desc" placeholder="Description" style="flex:1">
+                        </div>
+                        <div class="input-group">
+                            <input id="vk-amt" type="number" placeholder="Amount" style="flex:1.5">
+                            <button style="background: var(--expense-color); flex:1" onclick="window.addVacExpense('${id}')">Add</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card scrollable">
+                    <table>
+                        <tbody>
+                        ${vac.expenses.map(x => `
+                            <tr>
+                                <td><div style="font-size:0.8rem; color:gray">${x.category}</div>${x.description}</td>
+                                <td style="text-align:right">${formatMoney(x.amount)}</td>
+                                <td style="text-align:right"><button style="background: var(--delete-color); padding: 2px 6px; font-size:0.7rem" onclick="window.delVacExp('${id}', '${x.id}')">X</button></td>
+                            </tr>
+                        `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+        function updateVacBudget(vid, max) {
+            const v = parseFloat(document.getElementById('vb-val').value);
+            if(v <= max) {
+                const vac = data[currentYear].vacations.find(w => w.id === vid);
+                vac.budget = v;
+                saveData(); renderVacationDetails(vid);
+            } else {
+                alert("Insufficient funds in vacation savings!");
+            }
+        }
+        function addVacExpense(vid) {
+            const c = document.getElementById('vk-cat').value;
+            const o = document.getElementById('vk-desc').value;
+            const a = parseFloat(document.getElementById('vk-amt').value);
+            if(a>0) {
+                const vac = data[currentYear].vacations.find(w => w.id === vid);
+                vac.expenses.push({id: uuid(), category: c, description: o, amount: a});
+                saveData(); renderVacationDetails(vid);
+            }
+        }
+        function delVacExp(vid, eid) {
+            const vac = data[currentYear].vacations.find(w => w.id === vid);
+            vac.expenses = vac.expenses.filter(x => x.id !== eid);
+            saveData(); renderVacationDetails(vid);
+        }
+
+        function renderReport() {
+            currentView = "report";
+            let totalInc = 0, totalExp = 0;
+            
+            let catsInc = {}; SOURCES.forEach(z => catsInc[z] = 0);
+            let catsExp = {}; CATEGORIES.forEach(k => catsExp[k] = 0);
+
+            Object.values(data[currentYear].months).forEach(m => {
+                m.incomes.forEach(x => { catsInc[x.source] = (catsInc[x.source]||0)+x.amount; totalInc += x.amount; });
+                m.expenses.forEach(x => { catsExp[x.category] = (catsExp[x.category]||0)+x.amount; totalExp += x.amount; });
+            });
+            let vacCost = 0;
+            data[currentYear].vacations.forEach(w => {
+                w.expenses.forEach(x => { vacCost += x.amount; });
+            });
+            totalExp += vacCost;
+            
+            const stats = calculateVacationStatus(currentYear);
+            const totalSavings = Object.values(data[currentYear].savings.goals).reduce((a,b)=>a+b,0);
+            const availableSavings = totalSavings - stats.reserved;
+
+            appElem.innerHTML = `
+                <div class="flex center gap-10 mb-10 p-10">
+                    <button class="btn-nav" onclick="window.renderDashboard()">← Back</button>
+                    <h1 class="text-xl">Report ${currentYear}</h1>
+                </div>
+
+                <div class="card mb-10 stats-row">
+                    <div style="text-align:left"><div class="text-income font-bold">INCOME</div><div class="text-xl">${formatMoney(totalInc)}</div></div>
+                    <div style="text-align:left"><div class="text-expense font-bold">EXPENSES</div><div class="text-xl">${formatMoney(totalExp)}</div></div>
+                    <div style="text-align:left"><div class="text-savings font-bold">SAVINGS (FREE)</div><div class="text-xl">${formatMoney(availableSavings)}</div></div>
+                </div>
+
+                <div class="grid-3">
+                    <div class="card scrollable">
+                        <h2 class="text-income mb-5" style="font-size:1rem">Incomes</h2>
+                        ${Object.entries(catsInc).map(([k,v])=>`<div class="flex space-between p-10" style="border-bottom:1px solid #333"><span>${k}</span><b>${formatMoney(v)}</b></div>`).join('')}
+                    </div>
+                    <div class="card scrollable">
+                        <h2 class="text-expense mb-5" style="font-size:1rem">Expenses</h2>
+                        ${Object.entries(catsExp).map(([k,v])=>`<div class="flex space-between p-10" style="border-bottom:1px solid #333"><span>${k}</span><b>${formatMoney(v)}</b></div>`).join('')}
+                        ${vacCost > 0 ? `<div class="flex space-between p-10 text-vacation font-bold"><span>VACATION</span><span>${formatMoney(vacCost)}</span></div>` : ''}
+                    </div>
+                    <div class="card scrollable">
+                        <h2 class="text-savings mb-5" style="font-size:1rem">Savings Status</h2>
+                        ${Object.entries(data[currentYear].savings.goals).map(([k,v])=> {
+                            let display = v;
+                            if (k === "Vacation") { display = stats.available; }
+                            return `<div class="flex space-between p-10" style="border-bottom:1px solid #333"><span>${k}</span><b>${formatMoney(display)}</b></div>`;
+                        }).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function openModal(title, fields, callback) {
+            document.getElementById('modal-title').innerText = title;
+            const container = document.getElementById('modal-fields');
+            container.innerHTML = '';
+            fields.forEach(f => {
+                container.innerHTML += `<label class="mb-5 block" style="font-size:0.9rem">${f.label}</label><input id="modal-${f.key}" type="${f.type}" value="${f.val}" style="width:100%">`;
+            });
+            modalCallback = () => {
+                const res = {};
+                fields.forEach(f => {
+                    let val = document.getElementById(`modal-${f.key}`).value;
+                    if(f.type === 'number') val = parseFloat(val);
+                    res[f.key] = val;
+                });
+                callback(res);
+                closeModal();
+            };
+            document.getElementById('modal-overlay').classList.remove('hidden');
+        }
+        function saveModal() { if(modalCallback) modalCallback(); }
+        function closeModal() { document.getElementById('modal-overlay').classList.add('hidden'); }
+
+        window.selectYear = selectYear;
+        window.renderStartScreen = renderStartScreen;
+        window.renderDashboard = renderDashboard;
+        window.renderMonthScreen = renderMonthScreen;
+        window.addIncome = addIncome;
+        window.addExpense = addExpense;
+        window.renderExpenseTable = renderExpenseTable;
+        window.deleteItem = deleteItem;
+        window.editItem = editItem;
+        window.renderSavingsScreen = renderSavingsScreen;
+        window.addSaving = addSaving;
+        window.deleteSaving = deleteSaving;
+        window.renderVacationList = renderVacationList;
+        window.addVacation = addVacation;
+        window.deleteVacation = deleteVacation;
+        window.renderVacationDetails = renderVacationDetails;
+        window.updateVacBudget = updateVacBudget;
+        window.addVacExpense = addVacExpense;
+        window.delVacExp = delVacExp;
+        window.renderReport = renderReport;
+        window.saveModal = saveModal;
+        window.closeModal = closeModal;
+        window.updateSavingsFilter = updateSavingsFilter;
+        window.editSaving = editSaving;
+        window.editItem = editItem; 
+
+    </script>
+</body>
+</html>
