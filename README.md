@@ -43,3 +43,36 @@ const firebaseConfig = {
     messagingSenderId: "YOUR_SENDER_ID",
     appId: "YOUR_APP_ID"
 };
+
+
+PL
+# My Finance Hub 💰
+
+Prosta aplikacja typu "Mobile-First" do zarządzania finansami osobistymi, zawarta w całości w jednym pliku HTML. Zbudowana przy użyciu czystego JavaScript (Vanilla JS) i zasilana przez Google Firebase do uwierzytelniania i przechowywania danych w czasie rzeczywistym.
+
+## ✨ Główne Funkcje
+
+* **Przegląd Roczny i Miesięczny:** Łatwa nawigacja między latami podatkowymi i poszczególnymi miesiącami.
+* **Śledzenie Wpływów i Wydatków:** Rejestrowanie transakcji z podziałem na kategorie, źródła i opisy.
+* **Obliczenia w Czasie Rzeczywistym:** Automatyczne wyliczanie "Wolnych środków" na podstawie dochodów, wydatków i oszczędności.
+* **Cele Oszczędnościowe (Skarbonki):** Alokacja pieniędzy na konkretne cele (Poduszka Finansowa, Wakacje, Nagłe Wydatki).
+* **Planer Wakacji:** Ustalanie budżetów na wyjazdy i śledzenie konkretnych kosztów wakacyjnych względem założonego budżetu.
+* **Raporty Roczne:** Podsumowanie finansów dla wybranego roku w formie czytelnego zestawienia.
+* **Zoptymalizowany pod Mobile:** Responsywny design i obsługa gestów przesunięcia (swipe) do nawigacji "Wstecz".
+* **Synchronizacja w Chmurze:** Bezpieczne przechowywanie danych w bazie Firebase Firestore.
+
+## 🛠️ Technologie
+
+* **Frontend:** HTML5, CSS3 (osadzony), Vanilla JavaScript (ES Modules).
+* **Backend/Baza danych:** Firebase Firestore.
+* **Uwierzytelnianie:** Firebase Auth (Email/Hasło).
+* **Architektura:** Single File Application (Brak skomplikowanego procesu budowania/kompilacji).
+
+## 🚀 Instalacja i Konfiguracja
+
+Ponieważ jest to aplikacja działająca po stronie klienta (client-side) korzystająca z Firebase, musisz skonfigurować własny projekt Firebase, aby z niej korzystać.
+
+### 1. Sklonuj repozytorium
+```bash
+git clone [https://github.com/TWOJ_NICK/my-finance-hub.git](https://github.com/TWOJ_NICK/my-finance-hub.git)
+cd my-finance-hub
