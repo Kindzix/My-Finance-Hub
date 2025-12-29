@@ -23,8 +23,3 @@ A simple, mobile-first personal finance application contained entirely within a 
 ## 🚀 Setup & Installation
 
 Since this is a client-side application using Firebase, you need to set up your own Firebase project to use it.
-
-### 1. Clone the repository
-```bash
-git clone [https://github.com/YOUR_USERNAME/my-finance-hub.git](https://github.com/YOUR_USERNAME/my-finance-hub.git)
-cd my-finance-hub
